@@ -1,0 +1,30 @@
+$path = "C:\Windows\Blob\"
+
+# Set Azure Blob forensic storage
+$AzureURI = "https://kamalistore.blob.core.windows.net/newcontainer"
+# Set Location 
+Set-Location -Path C:\Windows\Blob\
+$env:AZCOPY_CONCURRENCY_VALUE=4
+
+# Download AzCopy
+Invoke-WebRequest -Uri "https://aka.ms/downloadazcopy-v10-windows" -OutFile AzCopy.zip -UseBasicParsing
+  
+# Expand Archive
+Expand-Archive ./AzCopy.zip ./AzCopy -Force
+
+Get-ChildItem ./AzCopy/*/azcopy.exe | Move-Item -Destination "C:\Windows\Blob\azcopy.exe"
+
+# Download Raptor Grab Memory from Azure Blob Storage 
+$File = "sam"
+$AzureToolURI = "https://kamalistore.blob.core.windows.net/newcontainer/sam?ssv=2021-12sample.p023-04-05T16:41:15Z&st
+2023-04-05T08:41:15Z&spr=https&sig=JzG5angOcnn3cH4yFRx9N%2Fw7SVXNGo4285asWA6mV1M%3D"
+Invoke-WebRequest -Uri $AzureToolURI -OutFile $File
+
+# Grab the memory and zip it
+.\sam
+
+# Grab the memory file
+$file = Get-Childitem –Path $path -Include CTAM_* -File -Recurse -ErrorAction SilentlyContinue
+
+# use azcopy to push file to blob storage 
+.\azcopy.exe cp $file $AzureURI --check-length=false 2>&1
